@@ -7,8 +7,11 @@
 {{define "content"}}
 <h2 class="mt-3 text-center">Virtual Terminal</h2>
 <hr>
+
+<div class="alert alert-danger text-center d-none" id="card-messages"></div>
+
 <form action="/payment-succeeded" method="POST" 
-	  name="charge_form" id="charge_form"
+	  name="charge_form" id="charge-form"
 	  class="d-block needs-validation charge-form"
 	  autocomplete="off" novalidate>
 
@@ -40,7 +43,13 @@
 
 	<hr>
 
-	<a id="pay-button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Charge Card</a>
+	<a id="pay-button" href="javascript:void(0)" class="btn btn-primary" onclick="validate()">Charge Card</a>
+
+	<div class="text-center d-none" id="processing-payment">
+		<div class="spinner-border text-primary" role="status">
+			<span class="visually-hidden">Loading...</span>
+		</div>
+	</div>
 </form>
 
 {{end}}
@@ -48,6 +57,59 @@
 {{define "js"}}
 <script src="http://js.stripe.com/v3/"></script>
 <script>
-	function val() {}
+	let card;
+	let stripe = Stripe('pk_test_51JV9zjSFMcT7BGqhoVcwd1Su2GJTwZewqrs6oPNnpCIoKbLH0MrBu87Bia1g29oYZkYlzV0TPCGZolBmjAdRTG4K00prkCAs2y');
+	const cardMessages = document.getElementById("card-messages");
+	const payButton = document.getElementById("pay-button");
+	const processing = document.getElementById("processing-payment");
+
+	function showProcessingUI() {
+		// hide pay button
+		payButton.classList.add("d-none");
+		// show processing
+		processing.classList.remove("d-none");
+	}
+
+	function validate() {
+		let form = document.getElementById("charge-form");
+		if (form.checkValidity() === false) {
+			this.event.preventDefault();
+			this.event.stopPropagation();
+			form.classList.add("was-validated");
+			return;
+		}
+		form.classList.add("was-validated");
+		showProcessingUI();
+	}
+
+	(function() {
+		// create stripe and its elements
+		const elements = stripe.elements();
+		const style = {
+			base: {
+				fontSize: '16px',
+				lineHeight: '24px'
+			}
+		};
+
+		// create card entry
+		card = elements.create('card', {
+			style: style,
+			hidePostalCode: true,
+		});
+		card.mount("#card-element");
+
+		// check for input errors
+		card.addEventListener('change', function(event) {
+			var displayError = document.getElementById('card-errors');
+			if (event.error) {
+				displayError.classList.remove('d-none');
+				displayError.textContent = event.error.message;
+			} else {
+				displayError.classList.add('d-none');
+				displayError.textContent = '';
+			}
+		});
+	})();
 </script>
 {{end}}
