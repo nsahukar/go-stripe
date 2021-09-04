@@ -1,8 +1,8 @@
-package card
+package cards
 
 import (
-	"github.com/stripe/stripe-go/paymentintent"
 	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/paymentintent"
 )
 
 type Card struct {
@@ -39,7 +39,7 @@ func (c *Card) CreatePaymentIntent(currency string, amount int) (*stripe.Payment
 	if err != nil {
 		var msg = ""
 		if stripeErr, ok := err.(*stripe.Error); ok {
-			msg = getCardErrorMessage(stripeErr)
+			msg = getCardErrorMessage(stripeErr.Code)
 		}
 		return nil, msg, err
 	}
