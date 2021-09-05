@@ -63,7 +63,7 @@
 <script src="http://js.stripe.com/v3/"></script>
 <script>
 	let card;
-	let stripe = Stripe('pk_test_51JV9zjSFMcT7BGqhoVcwd1Su2GJTwZewqrs6oPNnpCIoKbLH0MrBu87Bia1g29oYZkYlzV0TPCGZolBmjAdRTG4K00prkCAs2y');
+	let stripe = Stripe({{index .StringMap "publishable_key"}});
 	const cardMessages = document.getElementById("card_messages");
 	const payButton = document.getElementById("pay_button");
 	const processing = document.getElementById("processing_payment");
@@ -121,7 +121,7 @@
 		};
 
 		// request for payment intent from our backend
-		fetch("http://localhost:4001/api/payment-intent", requestOptions)
+		fetch({{.API}} + "/api/payment-intent", requestOptions)
 			.then(response => response.text())
 			.then(response => {
 				let data;
@@ -151,6 +151,7 @@
 								
 								// submit the form now -> 
 								// it will generate the receipt
+								document.getElementById("charge_form").submit();
 							}
 						}
 					});
