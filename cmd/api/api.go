@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/nsahukar/go-stripe/internal/driver"
 )
 
 
@@ -53,6 +55,7 @@ func main() {
 	// Get port, environment, and api URL from command flags
 	flag.IntVar(&cfg.port, "port", 4001, "Server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production|maintenance}")
+	flag.StringVar(&cfg.db.dsn, "dsn", "nix:irid3sceNT@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
 	flag.Parse()
 
 	// Getting stripe info from environment vars
@@ -63,6 +66,14 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// Connect to the database
+	// Fatal, if not able to connect
+	conn, err := driver.OpenDB(cfg.db.dsn)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer conn.Close()
+
 	// Setting up application
 	app := &application{
 		config:        cfg,
@@ -71,7 +82,7 @@ func main() {
 		version:       version,
 	}
 
-	err := app.serve()
+	err = app.serve()
 	if err != nil {
 		app.errorLog.Println(err)
 		log.Fatal(err)
